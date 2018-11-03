@@ -6,13 +6,13 @@
 /*   By: vmuradia <vmuradia@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/29 13:14:57 by vmuradia          #+#    #+#             */
-/*   Updated: 2018/11/02 19:34:47 by vmuradia         ###   ########.fr       */
+/*   Updated: 2018/11/03 16:02:18 by vmuradia         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-int		reading(char **line, char **text, int fd, int len)
+int		reading(char **line, char **text, int fd)
 {
 	char			*endl;
 	char 			*tmp;
@@ -24,18 +24,16 @@ int		reading(char **line, char **text, int fd, int len)
 		tmp = ft_strdup(text[fd]);
    		free(text[fd]);
    		text[fd] = tmp;
-   		if (text[fd][0] == '\0')
-		   ft_strdel(&text[fd]);
  	}
-	else if (text[fd] == '\0')
-	{
-		if (len == BUFF_SIZE)
-			return (get_next_line(fd, line));
+	else
 		*line = ft_strdup(text[fd]);
-		ft_strdel(&text[fd]);
-	}
+	tmp = text[fd];
+	text[fd] = ft_strsub(text[fd], (unsigned int)(ft_strlen(*line) + (endl ? 1 : 0)),
+				(size_t)ft_strlen(text[fd]) - (ft_strlen(*line) + (endl ? 1 : 0)));
+	ft_strdel(&tmp);
 	return (1);
 }
+
 int			get_next_line(const int fd, char **line)
 {
 	char			buffer[BUFF_SIZE + 1];
@@ -45,20 +43,20 @@ int			get_next_line(const int fd, char **line)
 
 	if (fd < 0 || fd > MAX_FD || BUFF_SIZE < 1 || !line)
 		return (-1);
+	if (text[fd] == NULL)
+    	text[fd] = ft_strnew(1);
 	while ((len = read(fd, buffer, BUFF_SIZE)) > 0)
 	{
 		buffer[len] = '\0';
-		if (text[fd] == NULL)
-        	text[fd] = ft_strnew(1);
 		tmp = ft_strjoin(text[fd], buffer);
 		free(text[fd]);
 		text[fd] = tmp;
-		if (ft_strchr(buffer, '\n'))
+		if (ft_strchr(text[fd], '\n'))
 			break ;
 	}
-	if (len == -1)
+	if (len  < 0)
 		return (-1);
 	else if (len == 0 && (text[fd] == NULL || text[fd][0] == '\0'))
 		return (0);
-	return(reading(line, text, fd, len));
+	return(reading(line, text, fd));
 }
